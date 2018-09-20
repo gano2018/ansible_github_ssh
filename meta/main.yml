@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: gano
+  description: Setting to access github via SSH key
+  license: MIT
+  min_ansible_version: 2.0
+  platforms:
+    - name: Ubuntu
+      versions:
+        - xenial # 16.04
+
+  galaxy_tags:
+    - git
+    - github
+    - ssh
+
+dependencies: []

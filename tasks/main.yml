@@ -1,0 +1,51 @@
+---
+- set_fact:
+    home: "/home/{{ user }}"
+  when: user is defined
+
+- set_fact:
+    project_name: "{{ project_name | default('project') }}"
+    ssh_dir: "{{ home | default(lookup('env','HOME')) }}/.ssh"
+
+- name: ensure .ssh/github_keys dir exists
+  file:
+    path: "{{ ssh_dir }}/github_keys"
+    state: directory
+
+- name: add github private key
+  copy:
+    src:   id_rsa
+    dest:  "{{ ssh_dir }}/github_keys/{{ project_name }}"
+    owner: "{{ user | default( ansible_ssh_user ) }}"
+    group: "{{ user | default( ansible_ssh_user ) }}"
+    mode:  0600
+
+- name: add github private key
+  copy:
+    src:   id_rsa.pub
+    dest:  "{{ ssh_dir }}/github_keys/{{ project_name }}.pub"
+    owner: "{{ user | default( ansible_ssh_user ) }}"
+    group: "{{ user | default( ansible_ssh_user ) }}"
+    mode:  0600
+
+- name: ensure .ssh/config file exists
+  copy:
+    content: ""
+    dest:    "{{ ssh_dir }}/config"
+    force:   no
+    owner:   "{{ user | default( ansible_ssh_user ) }}"
+    group:   "{{ user | default( ansible_ssh_user ) }}"
+    mode:    0644
+
+- name: insert access config
+  blockinfile:
+    dest: "{{ ssh_dir }}/config"
+    marker: "{{ marker | default ('# SSH_KEY ANSIBLE MANGED BLOCK1')}}"
+    block: |
+
+      Host {{ project_name }}
+      Port 22
+      HostName github.com
+      IdentityFile ~/.ssh/github_keys/{{ project_name }}
+      TCPKeepAlive yes
+      IdentitiesOnly yes
